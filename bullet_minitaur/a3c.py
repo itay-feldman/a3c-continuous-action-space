@@ -19,12 +19,12 @@ import torch.nn.functional as F
 import torch.nn.utils as nn_utils
 import torchvision
 
-from lib.experience import ExperienceSourceFirstLast
-from lib.Agent import Agent, default_preprocessor
-from model import ModelA3C
-from lib.utils import unpack_batch
-from lib import tracking
-from lib import wrappers
+from .lib.experience import ExperienceSourceFirstLast
+from .lib.Agent import Agent, default_preprocessor
+from .model import ModelA3C
+from .lib.utils import unpack_batch
+from .lib import tracking
+from .lib import wrappers
 
 # Constants
 GAMMA = 0.99
