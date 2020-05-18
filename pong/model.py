@@ -4,6 +4,10 @@ import numpy as np
 
 
 class ModelA3C(nn.Module):
+    """
+        The model class
+        The neural network architecture is defined here
+    """
     def __init__(self, input_shape, n_actions):
         super(ModelA3C, self).__init__()
 

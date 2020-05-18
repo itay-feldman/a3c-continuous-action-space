@@ -50,16 +50,19 @@ RewardSteps = namedtuple('RewardSteps', field_names='reward')
 
 
 def make_env():
+    # Create the environment
     return gym.make(ENV_NAME)
 
 
 def calc_logprob(mu_v, var_v, actions_v):
+    # Calculate the log probability needed for training
     p1 = - ((mu_v - actions_v) ** 2) / (2*var_v.clamp(min=1e-3))
     p2 = - torch.log(torch.sqrt(2 * math.pi * var_v))
     return p1 + p2
 
 
 def data_func(net, device, train_queue):
+    # Function to run in sub processes
     envs = [make_env() for _ in range(ENV_COUNT)]
     agent = Agent(net=net, device=device)
     exp_source = ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=STEPS_COUNT)
@@ -74,6 +77,7 @@ def data_func(net, device, train_queue):
 
 
 def test_net(net, env, count=10, device="cpu"):
+    # Test the model to see its performance and update the best
     rewards = 0.0
     steps = 0
     for _ in range(count):
@@ -92,7 +96,7 @@ def test_net(net, env, count=10, device="cpu"):
 
 
 def main():
-    # some setyp
+    # some setup
     mp.set_start_method('spawn')
     gym.logger.set_level(40)
 
@@ -149,6 +153,7 @@ def main():
         with tracking.RewardTracker(writer) as tracker:
             with tracking.TBMeanTracker(writer, batch_size=10) as tb_tracker:
                 while True:
+                    # Tracking
                     train_entry = train_queue.get()
                     if isinstance(train_entry, RewardSteps):
                         rewards_steps = train_entry.reward
@@ -159,6 +164,7 @@ def main():
 
                     time_step += 1
                     
+                    # Testing and updating the best model
                     if time_step % TEST_ITERS == 0:
                         ts = time.time()
                         rewards, steps = test_net(net, test_env, device=device)
@@ -181,7 +187,8 @@ def main():
                     batch.append(train_entry)
                     if len(batch) < BATCH_SIZE:
                         continue
-                        
+                    
+                    # Training
                     states_v, actions_v, vals_ref_v = unpack_batch(batch, net, last_val_gamma=GAMMA**STEPS_COUNT, device=device)
                     batch.clear()
                     # print('batch', states_v.shape, actions_v.shape, vals_ref_v.shape)

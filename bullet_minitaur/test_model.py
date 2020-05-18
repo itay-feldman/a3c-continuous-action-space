@@ -36,6 +36,9 @@ def make_env():
 
 
 def main():
+    """
+        After training is done we test and watch our model perform
+    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net = torch.load(LOAD_MODEL)
     net = net.to(device)

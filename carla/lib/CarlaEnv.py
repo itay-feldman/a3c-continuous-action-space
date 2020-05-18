@@ -70,6 +70,9 @@ class CarlaEnv:
         self.blocked = [self.last_location, 0]
         
     def reset(self):
+        """
+            Reset the environment
+        """
         for i in range(5):
             try:
                 self._clean_actors()
@@ -123,6 +126,10 @@ class CarlaEnv:
         return np.rollaxis(np.array(self.rgb), -1, 0)  # first observation
 
     def step(self, action):
+        """
+            Takes in an action and does it in the environment
+            Returns next state, reward, and if the env is done
+        """
         if action[1] > 0:
             throttle = action[1]
             brake = 0.0
@@ -177,7 +184,6 @@ class CarlaEnv:
     def _calculate_reward(self):
         """
             Calculate reward for step (assuming no collision)
-            Estimated maximum reward per step: ~8
         """
 
         reward = 0.0  # base reward
@@ -298,27 +304,48 @@ class CarlaEnv:
         return cam
 
     def _process_img_rgb(self, sensor_data):
+        """
+            This function is called when there is new output
+            from the rgb camera sensor
+        """
         img = np.array(sensor_data.raw_data).reshape((self.img_y, self.img_x, 4))
         img = img[:, :, :3]  # sensor is actualy rgba, we dont need alpha values
         self.rgb = img # need to scale rgb values to be {0,1}
 
     def _process_img_semantic(self, sensor_data):
+        """
+            This function is called when there is new output
+            from the semantice segmentation camera sensor
+        """
         sensor_data.convert(self.cc)
         img = np.array(sensor_data.raw_data).reshape((self.img_y, self.img_x, 4))
         img = img[:, :, :3]  # sensor is actualy rgba, we dont need alpha values
         self.semantic = img # need to scale rgb values to be {0,1}
 
     def _on_collision(self, event):
+        """
+            This function is called when there is a collision
+        """
         self.collided = event
 
     def _clean_actors(self):
+        """
+            Clean all actors this environment (client) is handling
+        """
         for actor in self.actor_list:
             actor.destroy()
 
     def _on_lane_invasion(self, event):
+        """
+            This function is called when the lane invasion sensor
+            has new output
+        """
         self.lanes_invaded = event.crossed_lane_markings
 
     def _lane_type_invasion(self, lanes):
+        """
+            Check which type of lane was invaded
+        """
         for lane in lanes:
             if lane.type is carla.LaneMarkingType.Solid or lane.type is carla.LaneMarkingType.SolidSolid:
                 return True
@@ -344,6 +371,10 @@ class CarlaEnv:
         self.world.apply_settings(self.settings)
 
     def _get_returned_state(self):
+        """
+            Chooses which state to return based on user
+            configuration when env was created
+        """
         if self.img_type == 'RGB':
             return np.rollaxis(np.array(self.rgb), -1, 0)
         elif self.img_type == 'SEMANTIC':

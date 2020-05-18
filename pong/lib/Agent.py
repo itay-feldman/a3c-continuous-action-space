@@ -17,6 +17,11 @@ class ProbabilityActionSelector:
 
 
 def default_preprocessor(states):
+    """
+        The default preprocessing function, is used if nothign else
+        is specified at decalration of Agent
+        Transform states to float32 np array then to torch Tensors
+    """
     if len(states) == 1:
         np_states = np.expand_dims(states[0], 0)
     else:
@@ -35,6 +40,11 @@ class Agent:
 
     @torch.no_grad()
     def __call__(self, states):
+        """
+            This function is called when the Agent is called
+            Preprocesses the states, passes them to the net
+            and calculates the actions
+        """
         if self.preprocessor is not None:
             states = self.preprocessor(states)
             if torch.is_tensor(states):

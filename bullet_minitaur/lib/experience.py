@@ -5,11 +5,22 @@ import gym
 from collections import deque
 
 
+# Simple named tuple that stores Experience
 Experience = namedtuple('Experience', ['state', 'action', 'reward', 'done'])
 
 
 class ExperienceSource:
+    """
+        Class that creates an iterable experience source, returns
+        an Experience object tuple each iteration
+    """
     def __init__(self, envs, agent, steps_count=1):
+        """
+        Create simple experience source
+        :param env: environment or list of environments to be used
+        :param agent: callable to convert batch of states into actions to take
+        :param steps_count: count of steps to track for every experience chain
+        """
         super().__init__()
         assert isinstance(steps_count, int)
         assert steps_count >= 1
@@ -24,6 +35,12 @@ class ExperienceSource:
         self.total_steps = []
 
     def __iter__(self):
+        """
+            This function is called each time the object is
+            iterated over, it uses the agent and  the
+            environment to generate Experience
+        """
+        # Setup
         states, batches, current_rewards, current_steps, env_lengths = [], [], [], [], []
         total_steps = [0] * len(self.envs)
         for env in self.envs:
@@ -34,6 +51,7 @@ class ExperienceSource:
             batches.append(deque(maxlen=self.steps_count))
         
         while True:
+            # main loop
             actions = [None] * len(states)
             states_in, states_idx = [], []
             # get all states that will be passed to the agent (and their indices):
@@ -85,12 +103,19 @@ class ExperienceSource:
             global_offset += len(action_v)
 
     def pop_total_rewards(self):
+        """
+            Return all the rewards accumulated so far
+        """
         r = list(self.total_rewards)  # python passes a refernce of a list, so we need to explicitly create a new one
         if r:
             self.total_rewards = []
         return r
     
     def pop_rewards_steps(self):
+        """
+            Return all the rewards accumulated so far
+            paired with the number of steps that episode was
+        """
         res = list(zip(self.total_rewards, self.total_steps))
         if res:
             self.total_rewards, self.total_steps = [], []
@@ -115,6 +140,13 @@ ExperienceFirstLast = namedtuple('ExperienceFirstLast', ['state', 'action', 'rew
 
 
 class ExperienceSourceFirstLast(ExperienceSource):
+    """
+    This is a wrapper around ExperienceSource to prevent storing full trajectory in replay buffer when we need
+    only first and last states. For every trajectory piece it calculates discounted reward and emits only first
+    and last states and action taken in the first state.
+    
+    If we have partial trajectory at the end of episode, last_state will be None
+    """
     def __init__(self, env, agent, gamma, steps_count=4):
         assert isinstance(gamma, float)
         super(ExperienceSourceFirstLast, self).__init__(env, agent, steps_count=steps_count+1)

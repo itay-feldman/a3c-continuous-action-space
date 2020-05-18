@@ -5,6 +5,12 @@ import torch
 
 
 def unpack_batch(batch, net, last_val_gamma, device='cpu'):
+    """
+    Convert batch into training tensors
+    :param batch:
+    :param net:
+    :return: states variable, actions tensor, reference values variable
+    """
     states = []
     actions = []
     rewards = []

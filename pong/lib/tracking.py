@@ -7,6 +7,11 @@ import torch
 
 class RewardTracker:
     def __init__(self, writer, stop_reward):
+        """
+        Constructs RewardTracker
+        :param writer: writer to use for writing stats
+        :param min_ts_diff: minimal time difference to track speed
+        """
         self.writer = writer
         self.stop_reward = stop_reward
 

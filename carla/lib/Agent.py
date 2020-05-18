@@ -5,6 +5,10 @@ import torch.nn.functional as F
 
 
 def default_preprocessor(states):
+    """
+        The default preprocessing function, is used if nothign else
+        is specified at decalration of Agent
+    """
     if len(states) == 1:
         np_states = np.expand_dims(states[0], 0)
     else:
@@ -14,6 +18,9 @@ def default_preprocessor(states):
 
 
 class Agent:
+    """
+        Agent class, simple class that transform states to action when called
+    """
     def __init__(self, net, device='cpu', preprocessor=default_preprocessor, action_limit=(-1, 1)):
         self.net = net
         self.device = device
@@ -22,6 +29,11 @@ class Agent:
 
     @torch.no_grad()
     def __call__(self, states):
+        """
+            This function is called when the Agent is called
+            Preprocesses the states, passes them to the net
+            and calculates the actions
+        """
         # print('in agent', states.shape)
         if self.preprocessor:
             states_v = self.preprocessor(states)

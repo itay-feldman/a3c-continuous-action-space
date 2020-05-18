@@ -5,6 +5,11 @@ import torch.nn.functional as F
 
 
 def default_preprocessor(states):
+    """
+        The default preprocessing function, is used if nothign else
+        is specified at decalration of Agent
+        Transform states to float32 np array then to torch Tensors
+    """
     np_states = np.array(states, dtype=np.float32)
     return torch.tensor(np_states)
 
@@ -14,10 +19,15 @@ class Agent:
         self.net = net
         self.device = device
         self.preprocessor = preprocessor
-        self.action_limit = action_limit
+        self.action_limit = action_limit  # clip  the actions
 
     @torch.no_grad()
     def __call__(self, states):
+        """
+            This function is called when the Agent is called
+            Preprocesses the states, passes them to the net
+            and calculates the actions
+        """
         if self.preprocessor:
             states_v = self.preprocessor(states)
             if torch.is_tensor(states_v):

@@ -11,7 +11,8 @@ import torch
 
 def get_carla_egg(config_file="./config/config.ini"):
     """
-        Simple function to get the config
+        Get the location of the carla Python API
+        set in the config
     """
     #try:
     config = ConfigParser()
@@ -23,6 +24,12 @@ def get_carla_egg(config_file="./config/config.ini"):
 
 
 def unpack_batch(batch, net, last_val_gamma, device='cpu'):
+    """
+    Convert batch into training tensors
+    :param batch:
+    :param net:
+    :return: states variable, actions tensor, reference values variable
+    """
     states = []
     actions = []
     rewards = []

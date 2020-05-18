@@ -7,6 +7,10 @@ HID_SIZE = 128
 
 
 class ModelA3C(nn.Module):
+    """
+        The model class
+        The neural network architecture is defined here
+    """
     def __init__(self, obs_size, act_size):
         super(ModelA3C, self).__init__()
 

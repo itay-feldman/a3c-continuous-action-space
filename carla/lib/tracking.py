@@ -7,6 +7,11 @@ import torch
 
 class RewardTracker:
     def __init__(self, writer, stop_reward):
+        """
+        Constructs RewardTracker
+        :param writer: writer to use for writing stats
+        :stop_reward: reward at which to stop training
+        """
         self.writer = writer
         self.stop_reward = stop_reward
 
