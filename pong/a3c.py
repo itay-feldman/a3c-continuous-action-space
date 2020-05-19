@@ -17,12 +17,12 @@ import torch.nn.functional as F
 import torch.nn.utils as nn_utils
 import torchvision
 
-from pong.lib.experience import ExperienceSourceFirstLast
-from pong.lib.Agent import Agent
-from pong.model import ModelA3C
-from pong.lib.utils import unpack_batch
-from pong.lib import tracking
-from pong.lib import wrappers
+from lib.experience import ExperienceSourceFirstLast
+from lib.Agent import Agent
+from model import ModelA3C
+from lib.utils import unpack_batch
+from lib import tracking
+from lib import wrappers
 
 # Constants
 GAMMA = 0.99
@@ -45,7 +45,7 @@ ENV_COUNT = 15  # num of env in each process
 
 ENV_NAME = "PongNoFrameskip-v4"
 NAME = 'pong'
-LOAD_MODEL = None # './models/latest.pt'
+LOAD_MODEL = './models/continue_2_467M.pt'
 
 
 TotalReward = namedtuple('TotalReward', field_names='reward')

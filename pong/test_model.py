@@ -25,8 +25,8 @@ from lib import tracking
 from lib import wrappers
 
 ENV_NAME = "PongNoFrameskip-v4"
-LOAD_MODEL = 'models/testing.pt'
-FRAME_RATE = 60  # 60 frames per second, frame=1/60
+LOAD_MODEL = 'models/complete.pt'
+FRAME_RATE = 120  # 60 frames per second, frame=1/60
 
 
 def make_env():
@@ -40,6 +40,7 @@ def main():
     net.eval()  # set model into evaluation mode
     agent = Agent(lambda x: net(x)[0], device=device, apply_softmax=True)
     print('Model loaded from:', LOAD_MODEL)
+    print(f'Playing at {FRAME_RATE} FPS')
 
     env = make_env()
     state = [env.reset()]
