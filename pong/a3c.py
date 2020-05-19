@@ -23,7 +23,6 @@ from model import ModelA3C
 from lib.utils import unpack_batch
 from lib import tracking
 from lib import wrappers
-# from lib.scheduling import Scheduler
 
 # Constants
 GAMMA = 0.99
@@ -46,9 +45,8 @@ ENV_COUNT = 15  # num of env in each process
 
 ENV_NAME = "PongNoFrameskip-v4"
 NAME = 'pong'
-LOAD_MODEL = './models/latest.pt'
+LOAD_MODEL = None # './models/latest.pt'
 
-# TODO add argparse for name etc.
 
 TotalReward = namedtuple('TotalReward', field_names='reward')
 
@@ -58,32 +56,23 @@ def make_env():
 
 
 def data_func(net, device, train_queue):
-    # TODO might be good to change the car type, the mustagn seems to have some physics issues on collision sometimes
     envs = [make_env() for _ in range(ENV_COUNT)]
-    # print('!render', render)
     agent = Agent(lambda x: net(x)[0], device=device, apply_softmax=True)
-    # TODO compare training with rgb to semantic and other variations
     exp_source = ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=STEPS_COUNT)
-    
-    """if scheduler is not None:
-        id_num = scheduler.assign_identifier()
-        print(f'Process {id_num} Started')"""
     
     print(f'{mp.current_process().name} Started')
 
     for exp in exp_source:
         new_rewards = exp_source.pop_total_rewards()
-        # print('New rewards', new_rewards)
         if new_rewards:
             train_queue.put(TotalReward(reward=np.mean(new_rewards)))
-            # print('Pop goes the weasel!')
         train_queue.put(exp)
 
 
 def main():
-    # some setyp
+    # some setup
     mp.set_start_method('spawn')
-    gym.logger.set_level(40)
+    # gym.logger.set_level(40)
 
     # writer
     timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -91,7 +80,7 @@ def main():
         name = f'runs/{NAME}_a3c_continued_{timestr}'
     else:
         name = f'runs/{NAME}_a3c_{timestr}'
-    writer = SummaryWriter()
+    writer = SummaryWriter(name)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('Using:', device)
@@ -134,8 +123,8 @@ def main():
     try:
         start_time = time.time()
         print(f'Training Started - {datetime.datetime.now()}')
-        with tracking.RewardTracker(writer, REWARD_BOUNDRY) as tracker:
-            with tracking.TBMeanTracker(writer, batch_size=10) as tb_tracker:
+        with tracking.RewardTracker(writer, stop_reward=REWARD_BOUNDRY) as tracker:
+            with tracking.TBMeanTracker(writer, batch_size=100) as tb_tracker:
                 while True:
                     train_entry = train_queue.get()
                     if isinstance(train_entry, TotalReward):
@@ -147,8 +136,8 @@ def main():
                     batch.append(train_entry)
                     if len(batch) < BATCH_SIZE:
                         continue
-                        
-                    states_v, actions_v, vals_ref_v = unpack_batch(batch, net, last_val_gamma=GAMMA**STEPS_COUNT, device=device)
+
+                    states_v, actions_t, vals_ref_v = unpack_batch(batch, net, last_val_gamma=GAMMA**STEPS_COUNT, device=device)
                     batch.clear()
 
                     optimizer.zero_grad()
@@ -158,7 +147,7 @@ def main():
 
                     log_prob_v = F.log_softmax(logits_v, dim=1)
                     adv_v = vals_ref_v - value_v.detach()
-                    log_prob_actions_v = adv_v * log_prob_v[range(BATCH_SIZE), actions_v]
+                    log_prob_actions_v = adv_v * log_prob_v[range(BATCH_SIZE), actions_t]
 
                     loss_policy_v = -log_prob_actions_v.mean()
                     prob_v = F.softmax(logits_v, dim=1)
@@ -166,7 +155,7 @@ def main():
 
                     loss_v = entropy_loss_v + loss_value_v + loss_policy_v
                     loss_v.backward()
-                    nn_utils.clip_grad_norm_(net.parameters(), CLIP_GRAD)  # make sure gradiants aren't above certain value (improves stability and convergence time)
+                    nn_utils.clip_grad_norm_(net.parameters(), CLIP_GRAD)
                     optimizer.step()
 
                     tb_tracker.track("advantage", adv_v, time_step)
@@ -179,20 +168,20 @@ def main():
                     
         # save model when training ends
         print(f'\nConvergence reached! Solved in {round(time.time() - start_time, 3)} seconds')
-        save_path = f'models/model_a3c_av_{timestr}.pt'
+        save_path = f'models/model_a3c_{timestr}.pt'
         torch.save(net.cpu(), save_path)
         print('Saved model to:', save_path)
     
     except KeyboardInterrupt:
         print('Stopped by the user')
-        save_path = f'models/model_a3c_av_stopped_{timestr}.pt'
+        save_path = f'models/model_a3c_stopped_{timestr}.pt'
         torch.save(net.cpu(), save_path)
         print('Saved model to:', save_path)
 
     except Exception as e:
         print('Training Crushed:')
         traceback.print_exc()
-        save_path = f'models/model_a3c_av_error_{timestr}.pt'
+        save_path = f'models/model_a3c_error_{timestr}.pt'
         torch.save(net.cpu(), save_path)
         print('Saved model to:', save_path)
 

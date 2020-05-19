@@ -25,7 +25,7 @@ from lib import tracking
 from lib import wrappers
 
 ENV_NAME = "PongNoFrameskip-v4"
-LOAD_MODEL = 'models/complete.pt'
+LOAD_MODEL = 'models/testing.pt'
 FRAME_RATE = 60  # 60 frames per second, frame=1/60
 
 
@@ -34,9 +34,6 @@ def make_env():
 
 
 def main():
-    """
-        After training is done we test and watch our model perform
-    """
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     net = torch.load(LOAD_MODEL)
     net = net.to(device)

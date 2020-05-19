@@ -7,11 +7,6 @@ import torch
 
 class RewardTracker:
     def __init__(self, writer, stop_reward):
-        """
-        Constructs RewardTracker
-        :param writer: writer to use for writing stats
-        :param min_ts_diff: minimal time difference to track speed
-        """
         self.writer = writer
         self.stop_reward = stop_reward
 
@@ -24,19 +19,16 @@ class RewardTracker:
     def __exit__(self, *args):
         self.writer.close()
 
-    def reward(self, reward, frame, epsilon=None):
+    def reward(self, reward, frame):
         self.total_rewards.append(reward)
         speed = (frame - self.ts_frame) / (time.time() - self.ts)
         self.ts_frame = frame
         self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-100:])
-        epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d episodes, mean reward %.3f, speed %.2f f/s%s" % (
-            frame, len(self.total_rewards), mean_reward, speed, epsilon_str
+        print("%d: done %d games, mean reward %.3f, speed %.2f f/s" % (
+            frame, len(self.total_rewards), mean_reward, speed
         ))
         sys.stdout.flush()
-        if epsilon is not None:
-            self.writer.add_scalar("epsilon", epsilon, frame)
         self.writer.add_scalar("speed", speed, frame)
         self.writer.add_scalar("reward_100", mean_reward, frame)
         self.writer.add_scalar("reward", reward, frame)
@@ -49,6 +41,7 @@ class RewardTracker:
 class TBMeanTracker:
     """
     TensorBoard value tracker: allows to batch fixed amount of historical values and write their mean into TB
+
     Designed and tested with pytorch-tensorboard in mind
     """
     def __init__(self, writer, batch_size):
