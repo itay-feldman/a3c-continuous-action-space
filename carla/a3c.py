@@ -31,6 +31,7 @@ GAMMA = 0.99
 LEARNING_RATE = 1e-6
 ENTROPY_BETA = 1e-4
 BATCH_SIZE = 16
+OPTIM_EPS = 1e-3
 
 STEPS_COUNT = 4  # TODO: try to have several envs in each process
 MAX_STEPS = 900
@@ -42,7 +43,7 @@ NUM_ENVS = 1
 REWARD_BOUNDRY = 10  # TODO change
 
 NAME = 'carla'
-LOAD_MODEL = 'models/best_rgb.pt'  # './models/latest.pt'
+LOAD_MODEL = None  # 'models/best_rgb.pt'
 
 TotalReward = namedtuple('TotalReward', field_names='reward')
 
@@ -106,7 +107,7 @@ def main():
     env.close()  # our env creates new actors that we don't need, we erase them here
     net.share_memory()  # enabled by default for CUDA, but needs to be enabled explicitly for CPU
 
-    optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE, eps=1e-3)  # TODO
+    optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE, eps=OPTIM_EPS)  # TODO test different epsilon
 
     train_queue = mp.Queue(maxsize=PROCESSES_COUNT)
     data_proc_list = []
@@ -121,7 +122,7 @@ def main():
 
     # add current hyperparameters to TensorBoard
     hparams = {'gamma': GAMMA, 'lr': LEARNING_RATE, 'entropy_beta': ENTROPY_BETA,
-        'batch_size': BATCH_SIZE, 'steps_count': STEPS_COUNT}
+        'baIMtch_size': BATCH_SIZE, 'steps_count': STEPS_COUNT, 'optim_epsilon': OPTIM_EPS}
     if DO_CLIP_GRAD:
         hparams['clip_grad_threshhold'] = CLIP_GRAD
     writer.add_hparams(hparams, {})

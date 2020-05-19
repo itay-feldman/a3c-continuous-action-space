@@ -250,7 +250,7 @@ class CarlaEnv:
             lane_yaw = self.map.get_waypoint(self.vehicle.get_location()).transform.rotation.yaw
             yaw_diff = np.abs(vehicle_yaw - lane_yaw)
             if yaw_diff > 180:
-                yaw_diff -= 180  # 180 is the max difference
+                yaw_diff = 360 - yaw_diff  # 180 is the max
             reward += -round(yaw_diff / 100, 3)
             
 

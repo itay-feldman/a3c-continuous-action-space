@@ -43,7 +43,7 @@ TEST_ITERS = 20000  # after n timesteps test the model
 
 ENV_NAME = "MinitaurBulletEnv-v0"
 NAME = 'minitaur'
-LOAD_MODEL = './models/best.pt'
+LOAD_MODEL = None  # './models/latest.pt'
 
 
 RewardSteps = namedtuple('RewardSteps', field_names='reward')

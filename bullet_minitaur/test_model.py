@@ -27,7 +27,7 @@ from lib import tracking
 from lib import wrappers
 
 ENV_NAME = "MinitaurBulletEnv-v0"
-LOAD_MODEL = './models/best.pt'
+LOAD_MODEL = './models/complete.pt'
 FRAME_RATE = 60  # 60 frames per second, frame=1/60
 
 

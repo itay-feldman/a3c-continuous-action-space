@@ -17,12 +17,8 @@ import torch.nn.functional as F
 import torch.nn.utils as nn_utils
 import torchvision
 
-from lib.experience import ExperienceSourceFirstLast
 from lib.CarlaEnv import CarlaEnv
 from lib.Agent import Agent
-from model import ModelA3C
-from lib.utils import unpack_batch
-from lib import tracking
 
 import carla
 
@@ -32,7 +28,7 @@ FRAME_RATE = 60  # 60 frames per second, frame=1/60
 
 
 def make_env():
-    return CarlaEnv(max_steps=MAX_STEPS, img_type='rgb', img_x=480, img_y=360, img_fov=200, traffic_light=False, calc_lane_invasion=False, calc_velocity_limit=False, calc_distace=True, calc_lane_type=True, calc_velocity=False, calc_rotation=True, vehicle="vehicle.chevrolet.impala", fixed_delta_seconds=round(1/30, 3))
+    return CarlaEnv(img_type='rgb', img_x=480, img_y=360, img_fov=200, traffic_light=False, calc_lane_invasion=False, calc_velocity_limit=False, calc_distace=True, calc_lane_type=True, calc_velocity=False, calc_rotation=True, vehicle="vehicle.chevrolet.impala", fixed_delta_seconds=round(1/30, 3))
 
 
 def main():
@@ -54,7 +50,6 @@ def main():
 
     try:
         while True:
-            env.render()
             time.sleep(1/FRAME_RATE)
             if state is not None:
                 action = agent(state)
@@ -65,13 +60,14 @@ def main():
             current_rewards.append(reward)
             if done:
                 episode_counter += 1
-                print('Episode', episode_counter, 'Done.')  # Mean Reward:', np.mean(current_rewards))
-                rewards_history.append(current_rewards)
+                rewards_history.append(np.mean(current_rewards))
+                print('Episode', episode_counter, 'Done, mean reward', np.mean(rewards_history[-100:]))  # Mean Reward:', np.mean(current_rewards))
                 current_rewards.clear()
                 print('Starting Next Episode...')
                 state = [env.reset()]
 
     except KeyboardInterrupt:
+        env.close()
         print('Stopped By The User')
         print('Exiting...')
 
