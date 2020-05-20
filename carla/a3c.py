@@ -43,7 +43,7 @@ NUM_ENVS = 1
 REWARD_BOUNDRY = 10  # TODO change
 
 NAME = 'carla'
-LOAD_MODEL = None  # 'models/best_rgb.pt'
+LOAD_MODEL = 'models/latest.pt'
 
 TotalReward = namedtuple('TotalReward', field_names='reward')
 

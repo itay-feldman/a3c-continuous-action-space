@@ -23,7 +23,7 @@ from lib.Agent import Agent
 import carla
 
 ENV_NAME = "MinitaurBulletEnv-v0"
-LOAD_MODEL = './models/best_rgb.pt'
+LOAD_MODEL = './models/latest.pt'
 FRAME_RATE = 60  # 60 frames per second, frame=1/60
 
 
